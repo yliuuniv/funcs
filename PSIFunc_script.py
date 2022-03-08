@@ -157,7 +157,7 @@ def orig_bin_cut(variter
   #cont bin
   if orig_copy_df.shape[0] > 0 :
     cont_list = frequency_df(orig_copy_df[variter], variter)
-    ntile = int(orig_copy_df.shape[0]/tile_size)
+    n_tile = int(orig_copy_df.shape[0]/tile_size)
     quartiles = pd.qcut(orig_copy_df[variter].rank(method = 'first'), n_tile, range(1, n_tile + 1))
     orig_copy_df['tileno'] = quartiles.values
     agg_check = orig_copy_df.groupby('tileno').agg({variter: ['min']}).reset_index()
