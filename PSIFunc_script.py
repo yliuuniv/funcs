@@ -1,4 +1,5 @@
 import pandas as pd
+import math
 
 def flatten_list(_2d_list):
   flat_list = []
@@ -9,7 +10,6 @@ def flatten_list(_2d_list):
     else:
       flat_list.append(element)
   return flat_list
-
 
 
 def frequency_df(x, variter):
@@ -192,4 +192,51 @@ def orig_bin_cut(variter
       
       
    
+ def PSI_Calc(feature_list = []
+             , tile_pct = 0.1
+             , round_digit = 9
+             , data_cutdf_path = ''
+             , fixed_pct = 0.05
+             , psi_sig_pct = 0.001
+             , userdir = ''
+             , prefix = 'PSI_file'
+             , special_value_df = pd.DataFrame(columns = ['var', 'special'])
+             , df_orig = pd.DataFrame()
+             , df_new = pd.DataFrame()
+             ):
+  """
+  
+  """
+  import pandas as pd
+  
+  if len(data_cutdf_path) > 0 :
+    cutoff_df = pd.read_csv(userdir)
+    cutoff_df = cutoff_df[['var', 'type', 'sign', 'cutoff', 'varBin', 'obs', 'obsPct']]
+  else:
+    orig_cutoff_pack = list(map(lambda x: orig_bin_cut(x, special_value_list(special_value_df, x), tile_pct, round_digit, fixed_pct, list(df_orig[x])),feature_list))
+    cutoff_df = pd.concat(orig_cutoff_pack)
+    
+  values_pack = list(map(lambda x: append_psi_cell(x, psi_sig_pct, cutoff_df, df_new), feature_list))
+  val_nobs = flatten_list([x[0] for x in values_pack])
+  val_pct = flatten_list([x[1] for x in values_pack])
+  val_psi = flatten_list([x[2] for x in values_pack])
+  
+  if len(data_cutdf_path) > 0 :
+    sub_cutoff = cutoff_df
+  else:
+    sub_cutoff = cutoff[cutoff_df['var'].isin(feature_list)]
+  
+  sub_cutoff = sub_cutoff.reset_index(drop = True)
+  sub_cutoff['newobs'] = val_nobs
+  sub_cutoff['newpct'] = val_pct
+  sub_cutoff['psi_bin'] = val_psi
+  
+  psi_df = sub_cutoff.groupby('var').agg({'psi_bin':['sum']}).reset_index()
+  psi_df.columns = ['var', 'PSI']
+  psi_df['rounded_4digit_PSI'] = psi_df['PSI'].apply(lambda x: round(x, 4))
+ 
+  psi_df.to_csv(userdir + prefix+'_PSIvalue_df.csv', header = True, index = False)
+  sub_cutoff.to_csv(userdir + prefix+'_detailedCut_df.csv', header = True, index = False)  
+  
+  
   
