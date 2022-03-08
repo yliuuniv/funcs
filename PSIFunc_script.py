@@ -92,7 +92,7 @@ def append_psi_cell(variter = ''
       new_npct += [pct_new_cont]
     
   # PSI Calc
-  if max(tmp_cut.iloc[variter, 6], new_npct[-1]) < psi_sig_pct):
+  if max(tmp_cut.iloc[variter, 6], new_npct[-1]) < psi_sig_pct:
     psi_list += [float(0.00)]
   elif min(new_npct[-1], tmp_cut.iloc[variter, 6]) == 0:
     psi_list += [float(1.00)]  
