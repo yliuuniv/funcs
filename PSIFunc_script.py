@@ -150,7 +150,7 @@ def orig_bin_cut(variter
       orig_nobs = fixedval.loc[fixedval['var'] == fixed_iter, 'count'].values[0]
       p_orig_fixed = orig_nobs*1.0/n_orig
       cutoff_df = pd.concat([cutoff_df, 
-                             pd.DataFrame([[variter, 'fixed', '=', str(fixed_iter), bin_no, orig_nobs, pct_orig_fixed]], columns = ['var', 'type', 'sign', 'cutoff', 'varBin', 'obs', 'obsPct'])])
+                             pd.DataFrame([[variter, 'fixed', '=', str(fixed_iter), bin_no, orig_nobs, p_orig_fixed]], columns = ['var', 'type', 'sign', 'cutoff', 'varBin', 'obs', 'obsPct'])])
       bin_no += 1
       orig_copy_df = orig_copy_df[orig_copy_df[variter] != fixed_iter]
       orig_copy_df = orig_copy_df.reset_index(drop = True)
