@@ -193,7 +193,6 @@ def orig_bin_cut(variter
              ):
     """
     """
-    import pandas as pd
     if len(data_cutdf_path) > 0 :
         cutoff_df = pd.read_csv(userdir)
         cutoff_df = cutoff_df[['var', 'type', 'sign', 'cutoff', 'varBin', 'obs', 'obsPct']]
