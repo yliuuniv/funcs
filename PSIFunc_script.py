@@ -65,7 +65,7 @@ def append_psi_cell(variter = ''
       n_new_missing = n_new - new_copy_df.shape[0]
       pct_new_missing = n_new_missing*1.0/n_new
       
-      new_nobs += [n_new_missing]
+      new_obs += [n_new_missing]
       new_npct += [pct_new_missing]
     
     elif (list(tmp_cut.type)[varbin] == 'Special') | (list(tmp_cut.type)[varbin] == 'fixed'):
@@ -74,7 +74,7 @@ def append_psi_cell(variter = ''
       pct_new_fixed = n_new_fixed*1.0/n_new
       new_copy_df = new_copy_df[new_copy_df[variter] != float(fixed_iter)]
       
-      new_nobs += [n_new_fixed]
+      new_obs += [n_new_fixed]
       new_npct += [pct_new_fixed]
     
     elif (list(tmp_cut.type)[varbin] == 'cont') | (list(tmp_cut.sign)[varbin] == '>='):
@@ -83,12 +83,12 @@ def append_psi_cell(variter = ''
       pct_new_cont = n_new_cont*1.0/n_new
       new_copy_df = new_copy_df[new_copy_df[variter] < float(cutoff_iter)]
       
-      new_nobs += [n_new_cont]
+      new_obs += [n_new_cont]
       new_npct += [pct_new_cont]
     else:
       n_new_cont = new_copy_df.shape[0]
       pct_new_cont = n_new_cont*1.0/n_new
-      new_nobs += [n_new_cont]
+      new_obs += [n_new_cont]
       new_npct += [pct_new_cont]
     
   # PSI Calc
