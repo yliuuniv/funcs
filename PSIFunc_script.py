@@ -224,7 +224,7 @@ def orig_bin_cut(variter
   if len(data_cutdf_path) > 0 :
     sub_cutoff = cutoff_df
   else:
-    sub_cutoff = cutoff[cutoff_df['var'].isin(feature_list)]
+    sub_cutoff = cutoff_df[cutoff_df['var'].isin(feature_list)]
   
   sub_cutoff = sub_cutoff.reset_index(drop = True)
   sub_cutoff['newobs'] = val_nobs
