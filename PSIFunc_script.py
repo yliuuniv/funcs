@@ -179,7 +179,7 @@ def orig_bin_cut(variter
       
       
    
- def PSI_Calc(feature_list = []
+def PSI_Calc(feature_list = []
              , tile_pct = 0.1
              , round_digit = 9
              , data_cutdf_path = ''
