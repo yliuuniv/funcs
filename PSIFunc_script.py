@@ -71,7 +71,7 @@ def append_psi_cell(variter = ''
             new_obs += [n_new_fixed]
             new_npct += [pct_new_fixed]
         
-        elif (list(tmp_cut.type)[varbin] == 'cont') | (list(tmp_cut.sign)[varbin] == '>='):
+        elif (list(tmp_cut.type)[varbin] == 'cont') & (list(tmp_cut.sign)[varbin] == '>='):
             cutoff_iter = list(tmp_cut.cutoff)[varbin]
             n_new_cont = new_copy_df.loc[new_copy_df[variter] >= float(cutoff_iter)].shape[0]
             pct_new_cont = n_new_cont*1.0/n_new
@@ -194,7 +194,7 @@ def orig_bin_cut(variter
     """
     """
     if len(data_cutdf_path) > 0 :
-        cutoff_df = pd.read_csv(userdir)
+        cutoff_df = pd.read_csv(data_cutdf_path)
         cutoff_df = cutoff_df[['var', 'type', 'sign', 'cutoff', 'varBin', 'obs', 'obsPct']]
     else:
         orig_cutoff_pack = list(map(lambda x: orig_bin_cut(x, special_value_list(special_value_df, x), tile_pct, round_digit, fixed_pct, list(df_orig[x])),feature_list))
