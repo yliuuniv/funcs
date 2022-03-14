@@ -3,7 +3,7 @@ Functions for data manipulation, processing, and cleaning
 
 ### PSI Calculation
 #### Pre defined user variables 
-
+'''
 feature_lis = ['var1', 'var2', 'var3']
   The variable list of which to calculate PSI
 tile_pct = 0.1
@@ -18,6 +18,7 @@ userdir = ''
   A string path to define where output will be created, e.g. 'C:/'
 prefix = 'PSI_file'
   The string prefix for output files
+ '''
              , special_value_df = pd.DataFrame(columns = ['var', 'special'])
 
 
