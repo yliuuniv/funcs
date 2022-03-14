@@ -29,8 +29,7 @@ def special_value_list(special_val_df, variter):
     """
     The function needs specific input format as:
     variter: a string variable name, e.g. 'var1'
-    special_val_df: a N*2 dim pandas dataframe, and the column names are ['var', 'special'];column     
-    'special' cell value will be a list, e.g. [0,1]
+    special_val_df: a N*2 dim pandas dataframe, and the column names are ['var', 'special'];column 'special' cell value will be a list, e.g. [0,1]
     """
     if special_val_df[special_val_df['var'] == variter].shape[0] > 0 :
         return list(special_val_df[special_val_df['var'] == variter]['special'])[0]
@@ -44,8 +43,9 @@ def append_psi_cell(variter = ''
     """
     The function needs specific input format as:
     variter: a string variable name, e.g. 'var1'
-    special_val_df: a N*2 dim pandas dataframe, and the column names are
-    ['var', 'special']; column 'special' cell value will be a list, e.g. [0,1]
+    psi_sig_pct: a float value, e.g. 0.001, indicating a threshold that if a psi_bin population's ratio is less than psi_sig, then 0 is assigned as psi for this bin.
+    cutoff_df: the input cutoff_df is with specific format, and must be an output of previous iteration of this function; in which the columns are: var, type, sign, cutoff, varBin, obs, obsPct, test_obs, test_pct, psi_bin.
+    df_new: a pandas dataframe which has the desired variter, and will be calcualted PSI based on cutoff_df
     """
     new_obs = []
     new_npct = []
@@ -103,7 +103,14 @@ def orig_bin_cut(variter
                 , fixed_pct
                 , dflist):
     """
+    The function needs specific input format as:
+    variter: a string variable name, e.g. 'var1'
+    Special_values: a list with special values for variter, e.g [9998, 9999]
+    round_digit: an integer which indicates that how many digits will be rounded for given variter
+    fixed_pct: a percentage, which indicates the minimum bin size to define a fixed value
+    dflist: the original (base population for PSI calculation) data list for variter.
     """
+    
     cutoff_df = pd.DataFrame(columns = ['var', 'type', 'sign', 'cutoff', 'varBin', 'obs', 'obsPct'])
     bin_no = 1
     orig_copy_df = pd.DataFrame({variter: dflist})
@@ -192,7 +199,20 @@ def PSI_Calc(feature_list = []
              , df_new = pd.DataFrame()
              ):
     """
+    The function needs specific input format as:
+    feature_list: a list of string based variable names for PSI calculation, e.g. ['var1', 'var2', 'var3']
+    tile_pct: the desired population for each bin
+    round_digit: an integer which indicates that how many digits will be rounded for given variter
+    data_cutdf_path: the csv path for pre-created cutoff dataframe. If it is a brand new PSI calculation for origdata and new data, define an empty string.
+    fixed_pct: a percentage, which indicates the minimum bin size to define a fixed value
+    psi_sig_pct: a float value, e.g. 0.001, indicating a threshold that if a psi_bin population's ratio is less than psi_sig, then 0 is assigned as psi for this bin.
+    userdir: a string indicated where the output file will be saved.
+    prefix: a string used as prefix for final outputs;
+    special_value_df: a N*2 dim pandas dataframe, and the column names are ['var', 'special'];column 'special' cell value will be a list, e.g. [0,1]
+    df_orig: the pandas dataframe which will be used as base population for PSI
+    df_new:  the pandas dataframe which will be used as test population to calculate PSI on top of df_orig
     """
+    
     if len(data_cutdf_path) > 0 :
         cutoff_df = pd.read_csv(data_cutdf_path)
         cutoff_df = cutoff_df[['var', 'type', 'sign', 'cutoff', 'varBin', 'obs', 'obsPct']]
