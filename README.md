@@ -4,23 +4,29 @@ Functions for data manipulation, processing, and cleaning
 ### PSI Calculation
 #### Pre defined user variables 
 '''
-feature_lis = ['var1', 'var2', 'var3']\
-  The variable list of which to calculate PSI
-tile_pct = 0.1
-  The desired population proportion for each bin;
-round_digit = 9
-  The integer of which to round each feature;
-fixed_pct = 0.05
-  The minimum proportion percentage to decide a fixed value;
-psi_sig_pct = 0.001
-  If a bin's size proportion is smaller than psi_sig_pct, then assign 0 as PSI to this bin;
-userdir = ''
-  A string path to define where output will be created, e.g. 'C:/'
-prefix = 'PSI_file'
-  The string prefix for output files
- '''
-             , special_value_df = pd.DataFrame(columns = ['var', 'special'])
+feature_lis = ['var1', 'var2', 'var3']:\
+The variable list of which to calculate PSI\
 
+tile_pct = 0.1:\
+The desired population proportion for each bin;\
+
+round_digit = 9:\
+The integer of which to round each feature;\
+
+fixed_pct = 0.05:\
+The minimum proportion percentage to decide a fixed value;\
+
+psi_sig_pct = 0.001:\
+If a bin's size proportion is smaller than psi_sig_pct, then assign 0 as PSI to this bin;\
+
+userdir = '':\
+A string path to define where output will be created, e.g. 'C:/'
+
+prefix = 'PSI_file':\
+The string prefix for output files\
+
+special_value_df = pd.DataFrame(columns = ['var', 'special'])
+ '''
 
 #### 1. If it is the first time creating PSI for given variables...
 
