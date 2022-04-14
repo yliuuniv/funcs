@@ -3,7 +3,6 @@ Functions for data manipulation, processing, and cleaning
 
 ### PSI Calculation
 #### Pre defined user variables 
-'''
 feature_lis = ['var1', 'var2', 'var3']:\
 The variable list of which to calculate PSI
 
@@ -26,10 +25,8 @@ prefix = 'PSI_file':\
 The string prefix for output files
 
 special_value_df = pd.DataFrame(columns = ['var', 'special'])
-'''
 
 #### 1. If it is the first time creating PSI for given variables...
-'''
 PSI_Calc(feature_list = feature_lis\
              , tile_pct = 0.1\
              , round_digit = 9\
@@ -44,11 +41,10 @@ PSI_Calc(feature_list = feature_lis\
              )\
              
 1. The detailed cutoff dataframe: prefix + '_detailedCut_df.csv'\
-2. The PSI Value dataframe: prefix + '_PSIvalue_df.csv'             
-'''             
+2. The PSI Value dataframe: prefix + '_PSIvalue_df.csv'                          
 
 #### 2. If is to calcuate PSI for given cutoff
-'''
+
 PSI_Calc(feature_list = feature_lis\
              , round_digit = 9\
              , data_cutdf_path = user_dir+'given_detailedCut_df.csv'\
@@ -59,4 +55,3 @@ PSI_Calc(feature_list = feature_lis\
              
 1. The detailed cutoff dataframe: prefix + '_detailedCut_df.csv'\
 2. The PSI Value dataframe: prefix + '_PSIvalue_df.csv'             
-'''   
