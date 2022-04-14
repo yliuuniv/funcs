@@ -4,7 +4,7 @@ Functions for data manipulation, processing, and cleaning
 ### PSI Calculation
 #### Pre defined user variables 
 '''
-feature_lis = ['var1', 'var2', 'var3']
+feature_lis = ['var1', 'var2', 'var3']\
   The variable list of which to calculate PSI
 tile_pct = 0.1
   The desired population proportion for each bin;
