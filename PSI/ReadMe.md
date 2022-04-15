@@ -36,7 +36,7 @@ PSI_Calc(feature_list = feature_lis\
              , special_value_df = pd.DataFrame({'var': ['var1', 'var2'], 'special': [[0],[-1,0]]})\
              , df_orig = a_original_pandas_dataframe\
              , df_new = a_test_pd_dataframe\
-             )\
+             )
              
 1. The detailed cutoff dataframe: prefix + '_detailedCut_df.csv'\
 2. The PSI Value dataframe: prefix + '_PSIvalue_df.csv'                          
@@ -49,7 +49,7 @@ PSI_Calc(feature_list = feature_lis\
              , userdir = 'C:/'\
              , prefix = 'PSI_validate'\
              , df_new = a_new_pd_dataframe\
-             )\
+             )
              
 1. The detailed cutoff dataframe: prefix + '_detailedCut_df.csv'\
 2. The PSI Value dataframe: prefix + '_PSIvalue_df.csv'             
