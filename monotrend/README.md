@@ -4,15 +4,6 @@
 feature_list = ['var1', 'var2', 'var3']:\
 The variable list of which to calculate PSI
 
-                           ,    metrics_name = 'woe'
-                           ,    resp_var = ''
-                           ,    wt_var = ''
-                           ,    userdir = ''
-                           ,    prefix = 'Prefix'
-                           ,    special_value_df = pd.DataFrame(columns = ['var', 'special'])
-                           ,    df_input = pd.DataFrame()
-                           
-                           
 wtd_tile_pct = 0.1:\
 The desired weighted population proportion for each bin;
 
