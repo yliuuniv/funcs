@@ -1,0 +1,259 @@
+# -*- coding: utf-8 -*-
+"""
+Created on Fri Apr 29 10:15:47 2022
+
+@author: YueL
+"""
+
+
+import pandas as pd
+
+def PDPNaive(head_cut = 0.001,
+             tail_cut = 0.999,
+             nbins = 20,
+             by_importance_var = [],
+             train_orig_df = pd.DataFrame(),
+             weight_int_var = '',
+             scr_script = """
+             with open(dir+'xgb.pkle.pkl', 'rb') as f:
+                 xgb_bst = pickle.load(f)
+             temp_scr = xgb_bst.predict(xgb.DMatrix(data = temp_train_data[xgb_bst.feature_names]))'
+             """,
+             prefix_name = '',
+             PDP_csv_path = '',             
+             user_dir = '',
+             multiple_page_together = True, 
+             create_indiv_pdp_pdf = False):
+    """
+    Model Inputs:
+        head_cut: 
+            the perct% where outliers will be removed; e.g. head_cut = 0.001 will remove values lower than 0.1% percentile;
+        tail_cut: 
+            the perct% where outliers will be removed; e.g. tail_cut = 0.999 will remove values higher than 99.9% percentile;
+        nbins: 
+            int. Number of evenly distributed tiles of value, from  lowest - highest;
+        by_importance_var: 
+            []. List of character variable names;
+        train_orig_df: 
+            pd.DataFrame(); pandas DataFrame used in original model training;
+        weight_int_var: 
+            string weight variable name;
+        scr_script: 
+            scoring script; really needs to be customized; as different model has totally different modeling algorithm;
+        prefix_name: 
+            string; prefix for all outputs;
+        PDP_csv_path: 
+            if is to recreate PDP based on a given PDP csv dataframe; then provide the file path; otherwise, keep it as '', default is '';
+        user_dir: 
+            user directory to save all outputs;
+        multiple_page_together: 
+            default value is TRUE; When it's True, to create 4 plots per page PNG & PDF; otherwise, no multiple plots file will be created;
+        create_indiv_pdp_pdf: 
+            default False; when False, there is no individual plot per page pdf Created
+    Model Outputs:
+        PDP CSV File: 
+            prefix_name+'_pdp_data.csv', with columns ['var', 'bars', 'pdp_cutoff_values', 'wtd_pdp_scr', 'def_tile', 'head_cutval', 'tail_cutval']
+        Single PDPPNG File(s): 
+            prefix_name+'_'+ varname + '_pdp.png'
+        If create_indiv_pdp_pdf = TRUE :
+            PDF File: prefix_name+'_singleplotPDF.pdf'
+        If multiple_page_together = TRUE :
+            PDF File: prefix_name+'_4PDP_page.pdf' 
+            PNG File(s): prefix_name+'_4plots_pdppage'+varname.png
+
+    """
+    
+    
+    
+    # check required python lib
+    
+    ERROR_flag = 0 
+    try:
+        from PIL import Images
+        print("Succesfully imported module 'PIL'")
+    except ImportError:
+        print("module 'PIL' is NOT installed; install it first")
+        ERROR_flag += 1 
+        
+    try:
+        from matplotlib.backends.backend_pdf import PdfPages
+        print("Succesfully imported module 'matplotlib.backends.backend_pdf'")
+    except ImportError:
+        print("module 'matplotlib' is not installed; install it first")
+        ERROR_flag += 1 
+      
+    try:
+        import xgboost as xgb
+        print("Succesfully imported module 'xgboost'")    
+    except ImportError:
+        print("module 'xgboost' is not installed; install it first")
+        ERROR_flag += 1 
+        
+    try:
+        import pandas as pd
+        print("Succesfully imported module 'pandas'")        
+    except ImportError:
+        print("module 'pandas' is not installed; install it first")
+        ERROR_flag += 1 
+        
+    try:
+        import numpy as np
+        print("Succesfully imported module 'numpy'")        
+    except ImportError:
+        print("module 'numpy' is not installed; install it first")
+        ERROR_flag += 1 
+                  
+    try:
+        from matplotlib.pyplot import plt
+        print("Succesfully imported module 'matplotlib.pyplot'")        
+    except ImportError:
+        print("module 'matplotlib' is not installed; install it first")
+        ERROR_flag += 1 
+    
+    if ERROR_flag > 0 :
+        return
+    
+    num_plts_page = 4
+    n_len_var = len(by_importance_var)
+    train_orig_df['weights_int'] = train_orig_df[weight_int_var].apply(lambda x: int(x))
+    part_size = float(1.0/nbins)
+    plt_part_no = int((n_len_var - n_len_var%num_plts_page)/num_plts_page)
+    plt_left = n_len_var%num_plts_page 
+    plt_page_no = plt_part_no if plt_left == 0 else (plt_part_no + 1)
+    pdp_csvname =  prefix_name+'_pdp_data.csv'
+    
+    
+    pdp_value_df = pd.DataFrame(columns = ['var', 'bars', 'pdp_cutoff_values', 'wtd_pdp_scr', 'def_tile', 'head_cutval', 'tail_cutval'])
+    
+    for var_pos in range(n_len_var):
+        varname_iter = by_importance_var[var_pos]
+        temp_train_data = train_orig_df.copy()
+        value_wtd_list = train_orig_df[[varname_iter, weight_int_var]].loc[train_orig_df.index.repeat(train_orig_df.weights_int)]
+        head_cutval = value_wtd_list[varname_iter].quantile(head_cut)
+        tail_cutval = value_wtd_list[varname_iter].quantile(tail_cut)    
+        value_wtd_list = value_wtd_list[(value_wtd_list[varname_iter] > head_cutval ) & (value_wtd_list[varname_iter] < tail_cutval )]
+        
+        # create x-axis evenly distributed list
+        min_start = min(value_wtd_list[varname_iter])
+        max_end = max(value_wtd_list[varname_iter])
+        even_part = float((max_end - min_start)/nbins)
+        pdp_cutoff_values = [(min_start + i * even_part) for i in range(nbins+1)]
+        
+        # labels
+        bars = [str(round(x,1) for x in pdp_cutoff_values)]
+        if train_orig_df[train_orig_df[varname_iter].isna()].shape[0] > 0 :
+            pdp_cutoff_values = [np.NaN] + pdp_cutoff_values
+            bars = ['Missing'] + bars
+        
+        wtd_pdp_scr = []
+        for value_cut in pdp_cutoff_values:
+            temp_train_data[varname_iter] = value_cut
+            
+            exec("temp_train_data['partial_scr'] = temp_scr")
+            wtd_pdp_scr += [sum(temp_train_data['partial_scr'] * temp_train_data[weight_int_var])/ sum(temp_train_data[weight_int_var])]
+            
+        pdp_value_df = pd.concat([pdp_value_df
+                                  , pd.DataFrame(list(zip([varname_iter]*len(bars), bars, pdp_cutoff_values, wtd_pdp_scr, [nbins]*len(bars),  [round(head_cutval, 2)]*len(bars), [round(tail_cutval, 2)]*len(bars) ))
+                                                 , columns = ['var', 'bars', 'pdp_cutoff_values', 'wtd_pdp_scr', 'def_tile', 'head_cutval', 'tail_cutval'])])
+        
+        
+    pdp_value_df.to_csv(user_dir + pdp_csvname)    
+    
+    
+    # -------------------------------------------------------------------------------------------------------------------------------------------------
+    # Part II create individual PDP plots
+    # -------------------------------------------------------------------------------------------------------------------------------------------------
+    
+    
+    # Create one Plot per Page PDP
+    if len(PDP_csv_path) > 0 :
+        pdp_value_df = pd.read_csv(pdp_value_df)
+    
+    
+    if create_indiv_pdp_pdf : 
+        individual_plot_pdf_name = prefix_name+'_singleplotPDF.pdf'
+        pp = PdfPages(user_dir + individual_plot_pdf_name)
+        
+    for var_pos in range(n_len_var):
+        varname_iter = by_importance_var[var_pos]
+        bars = pdp_value_df[pdp_value_df['var'] == varname_iter]['bars'].tolist()
+        wtd_pdp_scr = pdp_value_df[pdp_value_df['var'] == varname_iter]['wtd_pdp_scr'].tolist()
+        
+        plt.clf()
+        f, ax = plt.subplots(1)
+        ax.plot(bars, wtd_pdp_scr, 'ro', markersize = 2)
+        ax.set_xticklabels(bars, rotation = 45, ha = "right")
+        if bars[0] == 'Missing':
+            ax.plot(bars[1:], wtd_pdp_scr[1:], '--')
+        else:
+            ax.plot(bars, wtd_pdp_scr, '--')
+            
+        plt.title(varname_iter + "PDP Plot", fontdict = {'size': 10})
+        plt.rcParams.update({'font.size': 4})
+        plt.xlabel(varname_iter + ' value')
+        plt.ylabel('ModelScore')    
+        plt.savefig(user_dir + prefix_name+'_'+ varname_iter + '_pdp.png', dpi = 1200)
+        if create_indiv_pdp_pdf : 
+            pp.savefig(plt.gcf())
+        plt.close()
+    
+    plt.clf()
+    f, ax = plt.subplots(1)
+    plt.savefig(user_dir + prefix_name+'_onlysize_pdp.png', dpi = 1200)
+    plt.close()
+    if create_indiv_pdp_pdf :
+        pp.close()
+    
+        
+    
+    # -------------------------------------------------------------------------------------------------------------------------------------------------
+    # Part III create grouped PDP plots into one image
+    # -------------------------------------------------------------------------------------------------------------------------------------------------
+    
+    if multiple_page_together:
+        pp_4plts_name = user_dir + prefix_name+'_4PDP_page.pdf'
+        appd_image_list = []
+        create_pdf = 0 
+        for page_iter in range(plt_page_no):
+            if (page_iter < plt_part_no) | (plt_part_no == plt_page_no):
+                image1 = Image.open((user_dir + prefix_name+'_'+ by_importance_var[page_iter*4] + '_pdp.png'))
+                image2 = Image.open((user_dir + prefix_name+'_'+ by_importance_var[page_iter*4+1] + '_pdp.png'))
+                image3 = Image.open((user_dir + prefix_name+'_'+ by_importance_var[page_iter*4+2] + '_pdp.png'))            
+                image4 = Image.open((user_dir + prefix_name+'_'+ by_importance_var[page_iter*4+3] + '_pdp.png'))             
+                
+                w, h = image1.size
+                
+                new_image = Image.new('RGB', (w*2, h*2))
+                
+                new_image.paste(image1, (0,0))
+                new_image.paste(image2, (w,0))
+                new_image.paste(image3, (0,h))
+                new_image.paste(image4, (w,h))
+                
+                new_image.save(user_dir +prefix_name+'_4plots_pdppage'+str(page_iter+1)+'.png', quality = 95)
+                
+            else:
+                left_plots = n_len_var - page_iter * 4
+                for i_left in range(1,5):
+                    if i_left <= left_plots:
+                        exec("image"+str(i_left)+" = Image.open((user_dir + prefix_name+'_'+ by_importance_var[page_iter*4 + "+str(i_left - 1)+"] + '_pdp.png'))")
+                    else:
+                        exec("image"+str(i_left)+" = Image.open(user_dir + prefix_name+'_onlysize_pdp.png')")
+                    
+                new_image = Image.new('RGB', (w*2, h*2))
+                
+                new_image.paste(image1, (0,0))
+                new_image.paste(image2, (w,0))
+                new_image.paste(image3, (0,h))
+                new_image.paste(image4, (w,h))        
+                new_image.save(user_dir +prefix_name+'_4plots_pdppage'+str(page_iter+1)+'.png', quality = 95)
+    
+            if create_pdf == 0 :
+                create_pdf += 1
+                first_image = new_image
+            else:
+                appd_image_list += [new_image]
+    
+    
+        first_image.save(pp_4plts_name, save_all = True, append_images = appd_image_list)
+    
