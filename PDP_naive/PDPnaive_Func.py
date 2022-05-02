@@ -38,6 +38,8 @@ def PDPNaive(head_cut = 0.001,
             pd.DataFrame(); pandas DataFrame used in original model training;
         weight_int_var: 
             string weight variable name;
+        model_obj:
+            model python obj; really needs to be customized; as different model has totally different modeling algorithm;
         scr_script: 
             scoring script; really needs to be customized; as different model has totally different modeling algorithm;
         prefix_name: 
