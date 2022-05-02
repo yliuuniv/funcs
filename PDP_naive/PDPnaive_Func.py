@@ -91,7 +91,7 @@ def PDPNaive(head_cut = 0.001,
         ERROR_flag += 1 
 
     try:
-        from matplotlib.pyplot import plt
+        import matplotlib.pyplot as plt
         print("Succesfully imported module 'matplotlib.pyplot'")        
     except ImportError:
         print("module 'matplotlib' is not installed; install it first")
