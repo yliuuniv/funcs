@@ -94,20 +94,20 @@ def PDPNaive(head_cut = 0.001,
         import matplotlib.pyplot as plt
         print("Succesfully imported module 'matplotlib.pyplot'")        
     except ImportError:
-        print("module 'matplotlib' is not installed; install it first")
+        print("module 'matplotlib' is not installed; install it first;\nThe desired script is 'import matplotlib.pyplot as plt'")
         ERROR_flag += 1 
     try:
         from matplotlib.backends.backend_pdf import PdfPages
         print("Succesfully imported module 'matplotlib.backends.backend_pdf'")
     except ImportError:
-        print("module 'matplotlib' is not installed; install it first")
+        print("module 'matplotlib' is not installed; install it first;\nThe desired script is 'from matplotlib.backends.backend_pdf import PdfPages'")
         ERROR_flag += 1 
         
     try:
-        from PIL import Images
+        from PIL import Image
         print("Succesfully imported module 'PIL'")
     except ImportError:
-        print("module 'PIL' is NOT installed; install it first")
+        print("module 'PIL' is NOT installed; install it first;\nThe desired script is 'from PIL import Image'")
         ERROR_flag += 1 
 
     
