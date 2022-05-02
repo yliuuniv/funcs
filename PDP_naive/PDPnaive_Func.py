@@ -7,6 +7,7 @@ Created on Fri Apr 29 10:15:47 2022
 
 
 import pandas as pd
+import numpy as np
 
 def PDPNaive(head_cut = 0.001,
              tail_cut = 0.999,
@@ -14,10 +15,9 @@ def PDPNaive(head_cut = 0.001,
              by_importance_var = [],
              train_orig_df = pd.DataFrame(),
              weight_int_var = '',
+             model_obj = np.NaN,
              scr_script = """
-             with open(dir+'xgb.pkle.pkl', 'rb') as f:
-                 xgb_bst = pickle.load(f)
-             temp_scr = xgb_bst.predict(xgb.DMatrix(data = temp_train_data[xgb_bst.feature_names]))'
+             temp_scr = model_obj.predict(xgb.DMatrix(data = temp_train_data[model_obj.feature_names]))'
              """,
              prefix_name = '',
              PDP_csv_path = '',             
@@ -67,48 +67,49 @@ def PDPNaive(head_cut = 0.001,
     
     # check required python lib
     
-    ERROR_flag = 0 
-    try:
-        from PIL import Images
-        print("Succesfully imported module 'PIL'")
-    except ImportError:
-        print("module 'PIL' is NOT installed; install it first")
-        ERROR_flag += 1 
-        
-    try:
-        from matplotlib.backends.backend_pdf import PdfPages
-        print("Succesfully imported module 'matplotlib.backends.backend_pdf'")
-    except ImportError:
-        print("module 'matplotlib' is not installed; install it first")
-        ERROR_flag += 1 
-      
+    ERROR_flag = 0
+
     try:
         import xgboost as xgb
         print("Succesfully imported module 'xgboost'")    
     except ImportError:
         print("module 'xgboost' is not installed; install it first")
-        ERROR_flag += 1 
-        
+        ERROR_flag += 1     
+    
     try:
         import pandas as pd
         print("Succesfully imported module 'pandas'")        
     except ImportError:
         print("module 'pandas' is not installed; install it first")
         ERROR_flag += 1 
-        
+
     try:
         import numpy as np
         print("Succesfully imported module 'numpy'")        
     except ImportError:
         print("module 'numpy' is not installed; install it first")
         ERROR_flag += 1 
-                  
+
     try:
         from matplotlib.pyplot import plt
         print("Succesfully imported module 'matplotlib.pyplot'")        
     except ImportError:
         print("module 'matplotlib' is not installed; install it first")
         ERROR_flag += 1 
+    try:
+        from matplotlib.backends.backend_pdf import PdfPages
+        print("Succesfully imported module 'matplotlib.backends.backend_pdf'")
+    except ImportError:
+        print("module 'matplotlib' is not installed; install it first")
+        ERROR_flag += 1 
+        
+    try:
+        from PIL import Images
+        print("Succesfully imported module 'PIL'")
+    except ImportError:
+        print("module 'PIL' is NOT installed; install it first")
+        ERROR_flag += 1 
+
     
     if ERROR_flag > 0 :
         return
@@ -140,7 +141,7 @@ def PDPNaive(head_cut = 0.001,
         pdp_cutoff_values = [(min_start + i * even_part) for i in range(nbins+1)]
         
         # labels
-        bars = [str(round(x,1) for x in pdp_cutoff_values)]
+        bars = [str(round(x,1)) for x in pdp_cutoff_values]
         if train_orig_df[train_orig_df[varname_iter].isna()].shape[0] > 0 :
             pdp_cutoff_values = [np.NaN] + pdp_cutoff_values
             bars = ['Missing'] + bars
@@ -148,7 +149,7 @@ def PDPNaive(head_cut = 0.001,
         wtd_pdp_scr = []
         for value_cut in pdp_cutoff_values:
             temp_train_data[varname_iter] = value_cut
-            
+            exec(scr_script)
             exec("temp_train_data['partial_scr'] = temp_scr")
             wtd_pdp_scr += [sum(temp_train_data['partial_scr'] * temp_train_data[weight_int_var])/ sum(temp_train_data[weight_int_var])]
             
@@ -188,7 +189,7 @@ def PDPNaive(head_cut = 0.001,
         else:
             ax.plot(bars, wtd_pdp_scr, '--')
             
-        plt.title(varname_iter + "PDP Plot", fontdict = {'size': 10})
+        plt.title(varname_iter + " PDP Plot", fontdict = {'size': 10})
         plt.rcParams.update({'font.size': 4})
         plt.xlabel(varname_iter + ' value')
         plt.ylabel('ModelScore')    
@@ -216,37 +217,38 @@ def PDPNaive(head_cut = 0.001,
         create_pdf = 0 
         for page_iter in range(plt_page_no):
             if (page_iter < plt_part_no) | (plt_part_no == plt_page_no):
-                image1 = Image.open((user_dir + prefix_name+'_'+ by_importance_var[page_iter*4] + '_pdp.png'))
-                image2 = Image.open((user_dir + prefix_name+'_'+ by_importance_var[page_iter*4+1] + '_pdp.png'))
-                image3 = Image.open((user_dir + prefix_name+'_'+ by_importance_var[page_iter*4+2] + '_pdp.png'))            
-                image4 = Image.open((user_dir + prefix_name+'_'+ by_importance_var[page_iter*4+3] + '_pdp.png'))             
+                image_lis = []
+                for i_iter in range(1,5):
+                    image_lis += [Image.open((user_dir + prefix_name+'_'+ by_importance_var[page_iter*4 + i_iter -1 ] + '_pdp.png'))]           
                 
-                w, h = image1.size
+                w, h = image_lis[0].size
                 
                 new_image = Image.new('RGB', (w*2, h*2))
                 
-                new_image.paste(image1, (0,0))
-                new_image.paste(image2, (w,0))
-                new_image.paste(image3, (0,h))
-                new_image.paste(image4, (w,h))
+                new_image.paste(image_lis[0], (0,0))
+                new_image.paste(image_lis[1], (w,0))
+                new_image.paste(image_lis[2], (0,h))
+                new_image.paste(image_lis[3], (w,h))
                 
                 new_image.save(user_dir +prefix_name+'_4plots_pdppage'+str(page_iter+1)+'.png', quality = 95)
-                
+                del image_lis
             else:
+                image_lis = []
                 left_plots = n_len_var - page_iter * 4
                 for i_left in range(1,5):
                     if i_left <= left_plots:
-                        exec("image"+str(i_left)+" = Image.open((user_dir + prefix_name+'_'+ by_importance_var[page_iter*4 + "+str(i_left - 1)+"] + '_pdp.png'))")
+                        image_lis += [Image.open((user_dir + prefix_name+'_'+ by_importance_var[page_iter*4 + i_iter -1 ] + '_pdp.png'))]    
                     else:
-                        exec("image"+str(i_left)+" = Image.open(user_dir + prefix_name+'_onlysize_pdp.png')")
+                        image_lis += [Image.open((user_dir + prefix_name+'_onlysize_pdp.png'))]    
                     
                 new_image = Image.new('RGB', (w*2, h*2))
                 
-                new_image.paste(image1, (0,0))
-                new_image.paste(image2, (w,0))
-                new_image.paste(image3, (0,h))
-                new_image.paste(image4, (w,h))        
+                new_image.paste(image_lis[0], (0,0))
+                new_image.paste(image_lis[1], (w,0))
+                new_image.paste(image_lis[2], (0,h))
+                new_image.paste(image_lis[3], (w,h))       
                 new_image.save(user_dir +prefix_name+'_4plots_pdppage'+str(page_iter+1)+'.png', quality = 95)
+                del image_lis
     
             if create_pdf == 0 :
                 create_pdf += 1
