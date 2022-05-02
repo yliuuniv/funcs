@@ -69,9 +69,11 @@ def PDPNaive(head_cut = 0.001,
     
     ERROR_flag = 0
 
+    print('Desired xgb version is 1.5.0')
     try:
         import xgboost as xgb
-        print("Succesfully imported module 'xgboost'")    
+        print("Succesfully imported module 'xgboost'")   
+        print('Current xgb version is '+ xgb.__version__)
     except ImportError:
         print("module 'xgboost' is not installed; install it first")
         ERROR_flag += 1     
@@ -90,9 +92,18 @@ def PDPNaive(head_cut = 0.001,
         print("module 'numpy' is not installed; install it first")
         ERROR_flag += 1 
 
+    print('Desired matplotlib version is 3.5.0')
+    try:
+        import matplotlib
+        print("Succesfully imported module 'matplotlib'")    
+        print('Current matplotlib version is '+ matplotlib.__version__)
+    except ImportError:
+        print("module 'matplotlib' is not installed; install it first;")
+        ERROR_flag += 1     
+    
     try:
         import matplotlib.pyplot as plt
-        print("Succesfully imported module 'matplotlib.pyplot'")        
+        print("Succesfully imported module 'matplotlib.pyplot'")    
     except ImportError:
         print("module 'matplotlib' is not installed; install it first;\nThe desired script is 'import matplotlib.pyplot as plt'")
         ERROR_flag += 1 
@@ -102,10 +113,13 @@ def PDPNaive(head_cut = 0.001,
     except ImportError:
         print("module 'matplotlib' is not installed; install it first;\nThe desired script is 'from matplotlib.backends.backend_pdf import PdfPages'")
         ERROR_flag += 1 
-        
+    
+    print('Desired PIL version is 8.4.0')    
     try:
+        import PIL
         from PIL import Image
-        print("Succesfully imported module 'PIL'")
+        print("Succesfully imported module 'PIL.Image'")
+        print('Current PIL version is '+ PIL.__version__)
     except ImportError:
         print("module 'PIL' is NOT installed; install it first;\nThe desired script is 'from PIL import Image'")
         ERROR_flag += 1 
