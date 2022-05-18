@@ -271,7 +271,7 @@ def PDPNaive(head_cut = 0.001,
                 left_plots = n_len_var - page_iter * 4
                 for i_left in range(1,5):
                     if i_left <= left_plots:
-                        image_lis += [Image.open((user_dir + prefix_name+'_'+ by_importance_var[page_iter*4 + i_iter -1 ] + '_pdp.png'))]    
+                        image_lis += [Image.open((user_dir + prefix_name+'_'+ by_importance_var[page_iter*4 + i_left -1 ] + '_pdp.png'))]    
                     else:
                         image_lis += [Image.open((user_dir + prefix_name+'_onlysize_pdp.png'))]    
                 
