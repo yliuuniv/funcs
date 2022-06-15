@@ -42,7 +42,7 @@ else:
         
         freq_output = pd.DataFrame(ctabs.groupby('var').agg({'wt':['sum']}))
         freq_output.columns = ['count']
-        freq_output = freq_output.renamme_axis(index = None)
+        freq_output = freq_output.rename_axis(index = None)
 
         freq_output['var'] = freq_output.index
         freq_output = freq_output.sort_values(by = 'var', ascending = False)
@@ -247,7 +247,7 @@ else:
                 cont_list = frequency_df_y(orig_copy_df[variter], orig_copy_df['owt'],variter)
                 cont_list = cont_list.sort_values(by = 'var', ascending = False)
                 
-                n_tile = int(orig_copy_df['count'].sum()/tile_size)
+                n_tile = int(cont_list['count'].sum()/tile_size)
                 remain_iter_max = max(cont_list['var'])
                 quartiles = [x*tile_size for x in range(1, n_tile+1)]
                 
