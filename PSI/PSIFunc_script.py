@@ -1,4 +1,3 @@
-print('This is the PSI_Calc func version 3.0')
 
 ERROR_flag = 0 
 try:
@@ -365,10 +364,15 @@ else:
 
                 
         """
-        
+        print('This is the PSI_Calc func version 3.0')
+
         if 1 in [len(v) for name, v in documented_cutoff_dict.items()]:
             print("There is only one given cutoff value in documented_cutoff_dict. Please make sure there are at least two bins.")
             return
+        
+        for variter in feature_list:
+            if feature_list not in documented_cutoff_dict:
+                documented_cutoff_dict[variter] = []
         
         
         if len(data_cutdf_path) > 0 :
