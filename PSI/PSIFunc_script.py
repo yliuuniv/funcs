@@ -371,7 +371,7 @@ else:
             return
         
         for variter in feature_list:
-            if feature_list not in documented_cutoff_dict:
+            if variter not in documented_cutoff_dict:
                 documented_cutoff_dict[variter] = []
         
         
