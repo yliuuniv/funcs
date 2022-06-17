@@ -436,5 +436,5 @@ else:
         
         
         print('PSI Calculation Finished.')
-        print('Output 1:\n'+userdir + prefix+'_PSIvalue_df.csv')
-        print('Output 2:\n'+userdir + prefix+'_detailedCut_df.csv')
+        # print('Output 1:\n'+userdir + prefix+'_PSIvalue_df.csv')
+        # print('Output 2:\n'+userdir + prefix+'_detailedCut_df.csv')
