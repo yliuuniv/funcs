@@ -148,6 +148,8 @@ else:
             else:
                 psi_list += [(new_npct[-1] - tmp_cut.iloc[varbin,6]) * (math.log(new_npct[-1]/tmp_cut.iloc[varbin,6]))]
         
+        
+        print("Processing "+variter)    
         return [new_obs, new_npct, psi_list,raw_new_obs,raw_new_npct]
     
     
@@ -299,7 +301,7 @@ else:
         orig_copy_df = orig_copy_df.reset_index(drop = True)    
         orig_copy_df['varBin'] = orig_copy_df.index + 1
             
-        print("Processing "+variter)    
+        
         return cutoff_df  
           
           
@@ -377,7 +379,7 @@ else:
         
         if len(data_cutdf_path) > 0 :
             cutoff_df = pd.read_csv(data_cutdf_path)
-            cutoff_df = cutoff_df[['var', 'type', 'sign', 'cutoff', 'varBin', 'obs', 'obsPct']]
+            cutoff_df = cutoff_df[['var', 'type', 'sign', 'cutoff', 'varBin', 'obs', 'obsPct', 'raw_obs', 'raw_obsPct']]
             cutoff_df = cutoff_df[cutoff_df['var'].isin(feature_list)]
             
         elif len(documented_cutoff_dict) > 0 :
