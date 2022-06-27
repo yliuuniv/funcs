@@ -25,6 +25,7 @@ def PDPNaive(head_cut = 0.001,
              multiple_page_together = True, 
              create_indiv_pdp_pdf = False):
     """
+    author: yliu
     Model Log:
         V 1.0:  Publish first version PDP Naive
         V 1.1:  Fix the bug: first plot font
