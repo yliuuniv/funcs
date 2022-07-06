@@ -169,6 +169,8 @@ def mono_analysis_func(data_list, total_goods, total_bads, wtd_tilesize, metrics
 
 def special_value_list(special_val_df, variter):
     """
+    Module Log:
+       
     Parameters
     ----------
     special_val_df : a N*2 dim pandas dataframe
@@ -359,6 +361,21 @@ def Monotonic_Bin_creation(feature_list = []
                            ):
     """
     author: yliu
+    
+    Module Log:
+        version 1.0: initial Monotonic_Bin_creation Func
+
+    Example:
+        Monotonic_Bin_creation(feature_list = ['var1', 'var2', 'var3']
+        , wtd_tile_pct = 0.1
+        , metrics_name = 'bin_resppct'
+        , resp_var = 'dep_var'
+        , wt_var = 'weights'
+        , userdir = 'C:/'
+        , prefix = 'MonoTrend_prefix'
+        , special_value_df = pd.DataFrame({'var': ['var1', 'var2'], 'special': [[0],[-1,0]]})
+        , df_input = a_original_pandas_dataframe
+        )
 
     Parameters
     ----------
@@ -386,17 +403,6 @@ def Monotonic_Bin_creation(feature_list = []
     df_input:
     The input pandasdataframe
     
-    Monotonic_Bin_creation(feature_list = ['var1', 'var2', 'var3']
-    , wtd_tile_pct = 0.1
-    , metrics_name = 'bin_resppct'
-    , resp_var = 'dep_var'
-    , wt_var = 'weights'
-    , userdir = 'C:/'
-    , prefix = 'MonoTrend_prefix'
-    , special_value_df = pd.DataFrame({'var': ['var1', 'var2'], 'special': [[0],[-1,0]]})
-    , df_input = a_original_pandas_dataframe
-    )
-
     Returns
     -------
     The detailed cutoff dataframe indicating a monotonic trending for given metrics: prefix + '_monodetail_df.csv'\

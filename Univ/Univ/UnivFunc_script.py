@@ -1,7 +1,29 @@
 
 
 def UnivFunc(orig_col, varname):
-    # version 1.0
+    """
+    author: yliu
+    
+    Module Log:
+        version 1.0: initial Univariate Func
+
+    Example:
+        module_output = UnivFunc(data_list, 'dataname')
+
+    Parameters
+    ----------
+    orig_col : list
+        Input data as a list.
+    varname : string
+        the variable name as string.
+
+    Returns
+    -------
+    temp_output : pandas.DataFrame
+        The output is a pandaas dataframe of one row.
+
+    """
+    
     orig_vec = list(orig_col)
     import pandas as pd
     import math as math
