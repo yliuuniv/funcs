@@ -1,9 +1,3 @@
-# -*- coding: utf-8 -*-
-"""
-Created on Fri Apr 29 10:15:47 2022
-
-@author: YueL
-"""
 
 
 import pandas as pd
@@ -31,6 +25,22 @@ def PDPNaive(head_cut = 0.001,
         V 1.1:  Fix the bug: first plot font
                 Modify Func Msg
                 
+    Example:
+        PDPNaive(head_cut = 0.001,
+             tail_cut = 0.999,
+             nbins = 20,
+             by_importance_var = ['varA', 'varB', 'varC'],
+             train_orig_df = pd.DataFrame(),
+             weight_int_var = 'wt_var',
+             model_obj = np.NaN,
+             scr_script = '',
+             prefix_name = 'prefix_str',
+             PDP_csv_path = '',             
+             user_dir = 'c:/',
+             multiple_page_together = True, 
+             create_indiv_pdp_pdf = False
+        )
+
         
     Model Inputs:
         head_cut: 
@@ -59,6 +69,7 @@ def PDPNaive(head_cut = 0.001,
             default value is TRUE; When it's True, to create 4 plots per page PNG & PDF; otherwise, no multiple plots file will be created;
         create_indiv_pdp_pdf: 
             default False; when False, there is no individual plot per page pdf Created
+            
     Model Outputs:
         PDP CSV File: 
             prefix_name+'_pdp_data.csv', with columns ['var', 'bars', 'pdp_cutoff_values', 'wtd_pdp_scr', 'def_tile', 'head_cutval', 'tail_cutval']
