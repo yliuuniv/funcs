@@ -257,7 +257,7 @@ def orig_bin_cut_y(variter
                 orig_nobs = fixedval.loc[fixedval['var'] == fixed_iter, 'count'].values[0]
                 p_orig_fixed = orig_nobs*1.0/n_orig                    
                 
-                raw_orig_nobs = fixedval.loc[fixedval['var'] == fixed_iter].shape[0]
+                raw_orig_nobs = orig_copy_df[orig_copy_df[variter]== fixed_iter].shape[0]
                 raw_p_orig_fixed = raw_orig_nobs*1.0/raw_n_orig
                 
                 cutoff_df = pd.concat([cutoff_df,pd.DataFrame([[variter, 'fixed', '=', str(fixed_iter), bin_no, orig_nobs, p_orig_fixed,raw_orig_nobs,raw_p_orig_fixed]]
@@ -282,19 +282,32 @@ def orig_bin_cut_y(variter
             min_values = [cont_list['var'].iloc[x] for x in index ]
             agg_check_uniq = sorted(list(set(min_values)), reverse = True)
             
-            for cont_iter in range(len(agg_check_uniq)):
-                orig_nobs = orig_copy_df.loc[orig_copy_df[variter] >= agg_check_uniq[cont_iter]]['owt'].sum()
-                p_orig_obs = orig_nobs*1.0/n_orig                    
+            if len(agg_check_uniq) == 1:
+                cutoff_df = pd.concat([cutoff_df, pd.DataFrame([[variter, 'cont', 'ELSE', str(999999999), bin_no, orig_copy_df['owt'].sum(),(orig_copy_df['owt'].sum()*1.0)/n_orig,orig_copy_df.shape[0],(orig_copy_df.shape[0]*1.0)/raw_n_orig]],
+                                                               columns = ['var', 'type', 'sign', 'cutoff', 'varBin', 'obs', 'obsPct', 'raw_obs', 'raw_obsPct'])])
+                orig_copy_df = pd.DataFrame(columns = orig_copy_df.columns)
+            else:
+                for cont_iter in range(len(agg_check_uniq)):
+                    orig_nobs = orig_copy_df.loc[orig_copy_df[variter] >= agg_check_uniq[cont_iter]]['owt'].sum()
+                    p_orig_obs = (orig_nobs*1.0)/n_orig
+                    
+                    raw_orig_nobs = orig_copy_df.loc[orig_copy_df[variter] >= agg_check_uniq[cont_iter]].shape[0]
+                    raw_p_orig_obs = (raw_orig_nobs*1.0)/raw_n_orig      
+                    
+             
+            # for cont_iter in range(len(agg_check_uniq)):
+            #     orig_nobs = orig_copy_df.loc[orig_copy_df[variter] >= agg_check_uniq[cont_iter]]['owt'].sum()
+            #     p_orig_obs = orig_nobs*1.0/n_orig                    
                 
-                raw_orig_nobs = orig_copy_df.loc[orig_copy_df[variter] >= agg_check_uniq[cont_iter]].shape[0]
-                raw_p_orig_obs = raw_orig_nobs*1.0/raw_n_orig
+            #     raw_orig_nobs = orig_copy_df.loc[orig_copy_df[variter] >= agg_check_uniq[cont_iter]].shape[0]
+            #     raw_p_orig_obs = raw_orig_nobs*1.0/raw_n_orig
                 
-                if len(agg_check_uniq) == 1:
-                    cutoff_df = pd.concat([cutoff_df,pd.DataFrame([[variter, 'cont_min', '>=', str(agg_check_uniq[cont_iter]), bin_no, orig_nobs, p_orig_obs,raw_orig_nobs,raw_p_orig_obs]]
-                                                                  , columns = ['var', 'type', 'sign', 'cutoff', 'varBin', 'obs', 'obsPct', 'raw_obs', 'raw_obsPct'])])
-                    orig_copy_df = orig_copy_df[orig_copy_df[variter] < agg_check_uniq[cont_iter]]
-                    orig_copy_df = orig_copy_df.reset_index(drop = True)
-                else:
+            #     if len(agg_check_uniq) == 1:
+            #         cutoff_df = pd.concat([cutoff_df,pd.DataFrame([[variter, 'cont_min', '>=', str(agg_check_uniq[cont_iter]), bin_no, orig_nobs, p_orig_obs,raw_orig_nobs,raw_p_orig_obs]]
+            #                                                       , columns = ['var', 'type', 'sign', 'cutoff', 'varBin', 'obs', 'obsPct', 'raw_obs', 'raw_obsPct'])])
+            #         orig_copy_df = orig_copy_df[orig_copy_df[variter] < agg_check_uniq[cont_iter]]
+            #         orig_copy_df = orig_copy_df.reset_index(drop = True)
+            #     else:
                     if agg_check_uniq[cont_iter] != agg_check_uniq[-1]:
                         cutoff_df = pd.concat([cutoff_df,pd.DataFrame([[variter, 'cont', '>=', str(agg_check_uniq[cont_iter]), bin_no, orig_nobs, p_orig_obs,raw_orig_nobs,raw_p_orig_obs]]
                                                                       , columns = ['var', 'type', 'sign', 'cutoff', 'varBin', 'obs', 'obsPct', 'raw_obs', 'raw_obsPct'])])
@@ -357,6 +370,8 @@ def PSI_Calc(feature_list = []
             Add weight consideration to PSI, orig_wt, and new_wt
         v 3.1:
             Consider special senario: values found in new data but not in orig data 
+        v 3.2:
+            Fixed-Bin Value bug has been fixed.
             
     Example:
         PSI_Calc(feature_list = []
@@ -411,7 +426,7 @@ def PSI_Calc(feature_list = []
 
             
     """
-    print('This is the PSI_Calc func version 3.0')
+    # print('This is the PSI_Calc func version 3.0')
 
     if 1 in [len(v) for name, v in documented_cutoff_dict.items()]:
         print("There is only one given cutoff value in documented_cutoff_dict. Please make sure there are at least two bins.")
@@ -478,5 +493,5 @@ def PSI_Calc(feature_list = []
     
     
     print('PSI Calculation Finished.')
-    # print('Output 1:\n'+userdir + prefix+'_PSIvalue_df.csv')
-    # print('Output 2:\n'+userdir + prefix+'_detailedCut_df.csv')
+    print('Output 1:\n'+userdir + prefix+'_PSIvalue_df.csv')
+    print('Output 2:\n'+userdir + prefix+'_detailedCut_df.csv')
