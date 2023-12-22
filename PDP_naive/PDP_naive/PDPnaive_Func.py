@@ -11,19 +11,26 @@ def PDPNaive(head_cut = 0.001,
              weight_int_var = '',
              model_obj = np.NaN,
              scr_script = """
-             temp_scr = model_obj.predict(xgb.DMatrix(data = temp_train_data[model_obj.feature_names]))'
+             temp_scr = model_obj.predict(xgb.DMatrix(data = <temp_train_data>[model_obj.feature_names]))'
              """,
              prefix_name = '',
              PDP_csv_path = '',             
              user_dir = '',
-             multiple_page_together = True, 
-             create_indiv_pdp_pdf = False):
+             given_var_cutoff = dict()
+             ):
     """
     author: yliu
     Model Log:
         V 1.0:  Publish first version PDP Naive
         V 1.1:  Fix the bug: first plot font
                 Modify Func Msg
+        V 2.0:  Update capping/flooring info from >= to >;
+                Change PDP plot core codes and simplify logic;
+                Remove Parameter multiple_page_together, create_indiv_pdp_pdf.
+                Instead, add Parameter NumberofPlots_PerPage
+        V 3.0:  Add Pre-Defined var cutoff values;
+        V 3.1:  Fix Major Bugs;
+        V 3.2:  20231219: Fix an uppercase lowercase problem;        
                 
     Example:
         PDPNaive(head_cut = 0.001,
@@ -37,8 +44,7 @@ def PDPNaive(head_cut = 0.001,
              prefix_name = 'prefix_str',
              PDP_csv_path = '',             
              user_dir = 'c:/',
-             multiple_page_together = True, 
-             create_indiv_pdp_pdf = False
+             given_var_cutoff = {'var1': [1,2,3]}
         )
 
         
@@ -59,31 +65,25 @@ def PDPNaive(head_cut = 0.001,
             model python obj; really needs to be customized; as different model has totally different modeling algorithm;
         scr_script: 
             scoring script; really needs to be customized; as different model has totally different modeling algorithm;
+            Note; keep temp_scr, temp_train_data, model_obj as hardcoded in script.
         prefix_name: 
             string; prefix for all outputs;
         PDP_csv_path: 
             if is to recreate PDP based on a given PDP csv dataframe; then provide the file path; otherwise, keep it as '', default is '';
         user_dir: 
             user directory to save all outputs;
-        multiple_page_together: 
-            default value is TRUE; When it's True, to create 4 plots per page PNG & PDF; otherwise, no multiple plots file will be created;
-        create_indiv_pdp_pdf: 
-            default False; when False, there is no individual plot per page pdf Created
+        given_var_cutoff: 
+            dict: as {'var1': [1,2,3]}; to create PDP on specific cutoff values;
             
     Model Outputs:
         PDP CSV File: 
             prefix_name+'_pdp_data.csv', with columns ['var', 'bars', 'pdp_cutoff_values', 'wtd_pdp_scr', 'def_tile', 'head_cutval', 'tail_cutval']
-        Single PDPPNG File(s): 
-            prefix_name+'_'+ varname + '_pdp.png'
-        If create_indiv_pdp_pdf = TRUE :
-            PDF File: prefix_name+'_singleplotPDF.pdf'
-        If multiple_page_together = TRUE :
-            PDF File: prefix_name+'_4PDP_page.pdf' 
-            PNG File(s): prefix_name+'_4plots_pdppage'+varname.png
+        PDP PDF Plots:
+            PDF File: prefix_name + '_PDP_plots.pdf'
 
     """
     
-    print('This is the PDPnaive func version 1.1 ')
+    print('This is the PDPnaive func version 3.1 ')
     
     # check required python lib
     
@@ -92,56 +92,56 @@ def PDPNaive(head_cut = 0.001,
     print('PDPNaive Func note: Preferred xgb version is 1.5.0')
     try:
         import xgboost as xgb
-        print("Succesfully imported module 'xgboost'")   
-        print('Current xgb version is '+ xgb.__version__)
+        # print("Succesfully imported module 'xgboost'")   
+        # print('Current xgb version is '+ xgb.__version__)
     except ImportError:
-        print("module 'xgboost' is not installed; install it first")
+        print("PDPnaive notes: module 'xgboost' is not installed; install it first")
         ERROR_flag += 1     
     
     try:
         import pandas as pd
-        print("Succesfully imported module 'pandas'")        
+        # print("Succesfully imported module 'pandas'")        
     except ImportError:
-        print("module 'pandas' is not installed; install it first")
+        print("PDPnaive notes: module 'pandas' is not installed; install it first")
         ERROR_flag += 1 
 
     try:
         import numpy as np
-        print("Succesfully imported module 'numpy'")        
+        # print("Succesfully imported module 'numpy'")        
     except ImportError:
-        print("module 'numpy' is not installed; install it first")
+        print("PDPnaive notes: module 'numpy' is not installed; install it first")
         ERROR_flag += 1 
 
-    print('PDPNaive Func note: Preferred matplotlib version is 3.5.0')
+    # print('PDPNaive Func note: Preferred matplotlib version is 3.5.0')
     try:
         import matplotlib
-        print("Succesfully imported module 'matplotlib'")    
-        print('Current matplotlib version is '+ matplotlib.__version__)
+        # print("Succesfully imported module 'matplotlib'")    
+        # print('Current matplotlib version is '+ matplotlib.__version__)
     except ImportError:
-        print("module 'matplotlib' is not installed; install it first;")
+        print("PDPnaive notes: module 'matplotlib' is not installed; install it first;Preferred matplotlib version is 3.5.0'")
         ERROR_flag += 1     
     
     try:
         import matplotlib.pyplot as plt
-        print("Succesfully imported module 'matplotlib.pyplot'")    
+        # print("Succesfully imported module 'matplotlib.pyplot'")    
     except ImportError:
-        print("module 'matplotlib' is not installed; install it first;\nThe desired script is 'import matplotlib.pyplot as plt'")
+        print("PDPnaive notes: module 'matplotlib' is not installed; install it first;\nThe desired script is 'import matplotlib.pyplot as plt'")
         ERROR_flag += 1 
     try:
         from matplotlib.backends.backend_pdf import PdfPages
-        print("Succesfully imported module 'matplotlib.backends.backend_pdf'")
+        # print("Succesfully imported module 'matplotlib.backends.backend_pdf'")
     except ImportError:
-        print("module 'matplotlib' is not installed; install it first;\nThe desired script is 'from matplotlib.backends.backend_pdf import PdfPages'")
+        print("PDPnaive notes: module 'matplotlib' is not installed; install it first;\nThe desired script is 'from matplotlib.backends.backend_pdf import PdfPages'")
         ERROR_flag += 1 
     
-    print('PDPNaive Func note: Preferred PIL version is 8.4.0')    
+    # print('PDPNaive Func note: Preferred PIL version is 8.4.0')    
     try:
         import PIL
         from PIL import Image
-        print("Succesfully imported module 'PIL.Image'")
-        print('Current PIL version is '+ PIL.__version__)
+        # print("Succesfully imported module 'PIL.Image'")
+        # print('Current PIL version is '+ PIL.__version__)
     except ImportError:
-        print("module 'PIL' is NOT installed; install it first;\nThe desired script is 'from PIL import Image'")
+        print("PDPnaive notes: module 'PIL' is NOT installed; install it first;\nThe desired script is 'from PIL import Image'. Preferred PIL version is 8.4.0'")
         ERROR_flag += 1 
 
     
@@ -149,40 +149,64 @@ def PDPNaive(head_cut = 0.001,
         print('PDPNaive Func note: modules missing. Return.')
         return
     
-    num_plts_page = 4
+    if len(PDP_csv_path) == 0:
+        actual_pdp_csv = PDP_csv_path
+    
+    skip_vars = []
     
     if len(PDP_csv_path) == 0:
     
         n_len_var = len(by_importance_var)
-        train_orig_df['weights_int'] = train_orig_df[weight_int_var].apply(lambda x: int(x))
+
         part_size = float(1.0/nbins)
-        plt_part_no = int((n_len_var - n_len_var%num_plts_page)/num_plts_page)
-        plt_left = n_len_var%num_plts_page 
-        plt_page_no = plt_part_no if plt_left == 0 else (plt_part_no + 1)
+
+
         pdp_csvname =  prefix_name+'_pdp_data.csv'
-        
+        actual_pdp_csv = user_dir + pdp_csvname
         
         pdp_value_df = pd.DataFrame(columns = ['var', 'bars', 'pdp_cutoff_values', 'wtd_pdp_scr', 'def_tile', 'head_cutval', 'tail_cutval'])
         
-        for var_pos in range(n_len_var):
+        
+        for var_pos in range(len(by_importance_var)):
             varname_iter = by_importance_var[var_pos]
             temp_train_data = train_orig_df.copy()
-            value_wtd_list = train_orig_df[[varname_iter, weight_int_var]].loc[train_orig_df.index.repeat(train_orig_df.weights_int)]
-            head_cutval = value_wtd_list[varname_iter].quantile(head_cut)
-            tail_cutval = value_wtd_list[varname_iter].quantile(tail_cut)    
-            value_wtd_list = value_wtd_list[(value_wtd_list[varname_iter] > head_cutval ) & (value_wtd_list[varname_iter] < tail_cutval )]
+            temp_train_data['weights_int'] = temp_train_data[weight_int_var].apply(lambda x: int(x))
+
+            if varname_iter not in list(given_var_cutoff.keys()):
+                value_wtd_list = train_orig_df[[varname_iter, weight_int_var]].loc[train_orig_df.index.repeat(train_orig_df.weights_int)]
+                head_cutval = value_wtd_list[varname_iter].quantile(head_cut)
+                tail_cutval = value_wtd_list[varname_iter].quantile(tail_cut)    
+                value_wtd_list = value_wtd_list[(value_wtd_list[varname_iter] > head_cutval ) & (value_wtd_list[varname_iter] < tail_cutval )]
             
-            # create x-axis evenly distributed list
-            min_start = min(value_wtd_list[varname_iter])
-            max_end = max(value_wtd_list[varname_iter])
-            even_part = float((max_end - min_start)/nbins)
-            pdp_cutoff_values = [(min_start + i * even_part) for i in range(nbins+1)]
             
-            # labels
-            bars = [str(round(x,1)) for x in pdp_cutoff_values]
-            if train_orig_df[train_orig_df[varname_iter].isna()].shape[0] > 0 :
-                pdp_cutoff_values = [np.NaN] + pdp_cutoff_values
-                bars = ['Missing'] + bars
+                # create x-axis evenly distributed list
+                if len(value_wtd_list[varname_iter]) > 0 :
+                    min_start = min(value_wtd_list[varname_iter])
+                    max_end = max(value_wtd_list[varname_iter])
+                    even_part = float((max_end - min_start)/nbins)
+                    pdp_cutoff_values = [(min_start + i * even_part) for i in range(nbins+1)]
+                    crt_nbins = nbins
+                else:
+                    pdp_cutoff_values = []
+                    crt_nbins = 0
+                    skip_vars += [varname_iter]
+            else:
+                pdp_cutoff_values = sorted(given_var_cutoff[varname_iter])
+                head_cutval = pdp_cutoff_values[0]
+                tail_cutval = pdp_cutoff_values[-1]
+                crt_nbins = len(pdp_cutoff_values)
+                
+                    
+            
+            # labels - add Missing
+            if len(pdp_cutoff_values) > 0 :
+                bars = [str(round(x,1)) for x in pdp_cutoff_values]
+            else:
+                bars = []
+            
+            pdp_cutoff_values = [np.NAN] + pdp_cutoff_values
+            bars = ['Missing'] + bars
+
             
             wtd_pdp_scr = []
             for value_cut in pdp_cutoff_values:
@@ -207,30 +231,20 @@ def PDPNaive(head_cut = 0.001,
     # Create one Plot per Page PDP
     if len(PDP_csv_path) > 0 :
         pdp_value_df = pd.read_csv(PDP_csv_path)
-        n_len_var = len(set(pdp_value_df['var']))
 
-        plt_part_no = int((n_len_var - n_len_var%num_plts_page)/num_plts_page)
-        plt_left = n_len_var%num_plts_page 
-        plt_page_no = plt_part_no if plt_left == 0 else (plt_part_no + 1)
-        
+    plots = []
+    for varname in by_importance_var :
+        if varname not in skip_vars:
+            bars = list(pdp_value_df[pdp_value_df['var'] == varname]['bars'])
+            wtd_pdp_scr = list(pdp_value_df[pdp_value_df['var'] == varname]['wtd_pdp_scr'])
+            plots += [[bars, wtd_pdp_scr, varname]]
+            
+    pdf_Pages = PdfPages(user_dir + prefix_name + '_PDP_plots.pdf')
+    fig = plt.figure(figsize = (11.69, 8.27))
+    page_num = 1
     
-    if create_indiv_pdp_pdf : 
-        individual_plot_pdf_name = prefix_name+'_singleplotPDF.pdf'
-        pp = PdfPages(user_dir + individual_plot_pdf_name)
-
-    plt.clf()
-    f, ax = plt.subplots(1)
-    plt.savefig(user_dir + prefix_name+'_onlysize_pdp.png', dpi = 1200)
-    plt.rcParams.update({'font.size': 4})
-    plt.close()
-        
-    for var_pos in range(n_len_var):
-        varname_iter = by_importance_var[var_pos]
-        bars = pdp_value_df[pdp_value_df['var'] == varname_iter]['bars'].tolist()
-        wtd_pdp_scr = pdp_value_df[pdp_value_df['var'] == varname_iter]['wtd_pdp_scr'].tolist()
-        
-        plt.clf()
-        f, ax = plt.subplots(1)
+    for i, (bars, wtd_pdp_scr, varname_iter) in enumerate(plots):
+        ax = fig.add_subplot(2,2,i%4+1)
         ax.plot(bars, wtd_pdp_scr, 'ro', markersize = 2)
         ax.set_xticklabels(bars, rotation = 45, ha = "right")
         if bars[0] == 'Missing':
@@ -238,71 +252,24 @@ def PDPNaive(head_cut = 0.001,
         else:
             ax.plot(bars, wtd_pdp_scr, '--')
             
-        plt.title(varname_iter + " PDP Plot", fontdict = {'size': 10})
+        plt.title(varname_iter + " PDP Plot", fontdict = {'size':10})
+        plt.xlabel(varname_iter + ' value', fontsize = 10)
+        plt.ylabel('ModelScore', fontsize = 10)
+        plt.xticks(fontsize=6)
+        plt.yticks(fontsize=6)
         
-        plt.xlabel(varname_iter + ' value')
-        plt.ylabel('ModelScore')    
-        plt.savefig(user_dir + prefix_name+'_'+ varname_iter + '_pdp.png', dpi = 1200)
-        if create_indiv_pdp_pdf : 
-            pp.savefig(plt.gcf())
+        if (i+1)%4 == 0:
+            plt.tight_layout()
+            pdf_Pages.savefig(fig)
+            plt.close()
+            page_num += 1
+            fig = plt.figure(figsize = (11.69,8.27))
+    
+    if len(plots) %4 != 0 :
+        plt.tight_layout()
+        pdf_Pages.savefig(fig)
         plt.close()
+        page_num += 1
     
-
-    if create_indiv_pdp_pdf :
-        pp.close()
-    
+    pdf_Pages.close()
         
-    
-    # -------------------------------------------------------------------------------------------------------------------------------------------------
-    # Part III create grouped PDP plots into one image
-    # -------------------------------------------------------------------------------------------------------------------------------------------------
-    
-    if multiple_page_together:
-        pp_4plts_name = user_dir + prefix_name+'_4PDP_page.pdf'
-        appd_image_list = []
-        create_pdf = 0 
-        for page_iter in range(plt_page_no):
-            if (page_iter < plt_part_no) | (plt_part_no == plt_page_no):
-                image_lis = []
-                for i_iter in range(1,5):
-                    image_lis += [Image.open((user_dir + prefix_name+'_'+ by_importance_var[page_iter*4 + i_iter -1 ] + '_pdp.png'))]           
-                
-                w, h = image_lis[0].size
-                
-                new_image = Image.new('RGB', (w*2, h*2))
-                
-                new_image.paste(image_lis[0], (0,0))
-                new_image.paste(image_lis[1], (w,0))
-                new_image.paste(image_lis[2], (0,h))
-                new_image.paste(image_lis[3], (w,h))
-                
-                new_image.save(user_dir +prefix_name+'_4plots_pdppage'+str(page_iter+1)+'.png', quality = 95)
-                del image_lis
-            else:
-                image_lis = []
-                left_plots = n_len_var - page_iter * 4
-                for i_left in range(1,5):
-                    if i_left <= left_plots:
-                        image_lis += [Image.open((user_dir + prefix_name+'_'+ by_importance_var[page_iter*4 + i_left -1 ] + '_pdp.png'))]    
-                    else:
-                        image_lis += [Image.open((user_dir + prefix_name+'_onlysize_pdp.png'))]    
-                
-                w, h = image_lis[0].size    
-                new_image = Image.new('RGB', (w*2, h*2))
-                
-                new_image.paste(image_lis[0], (0,0))
-                new_image.paste(image_lis[1], (w,0))
-                new_image.paste(image_lis[2], (0,h))
-                new_image.paste(image_lis[3], (w,h))       
-                new_image.save(user_dir +prefix_name+'_4plots_pdppage'+str(page_iter+1)+'.png', quality = 95)
-                del image_lis
-    
-            if create_pdf == 0 :
-                create_pdf += 1
-                first_image = new_image
-            else:
-                appd_image_list += [new_image]
-    
-    
-        first_image.save(pp_4plts_name, save_all = True, append_images = appd_image_list)
-    
